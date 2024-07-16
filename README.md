@@ -16,6 +16,8 @@ The program operates in two modes:
 
 ## How to Embed Files
 
+### Step-by-Step Process
+
 1. **Ensure Files Exist**:
    - Make sure `important1.exe` and `important2.exe` exist in your directory. If not, create or copy them there.
 
@@ -31,6 +33,134 @@ The program operates in two modes:
      .\injector.exe .\important1.exe .\important2.exe
      ```
    - This updates the embedded executables in the program and recompiles it, saving the new version as `newprogram.exe`.
+
+### Code Explanation
+
+The key parts of the program are:
+
+1. **Embedding Executables Using `go:embed`**:
+   - The `//go:embed` directive is used to embed the executables into the Go program at compile time.
+     ```go
+     //go:embed important1.exe
+     var embeddedProgram1 []byte
+
+     //go:embed important2.exe
+     var embeddedProgram2 []byte
+     ```
+
+2. **Injector Mode**:
+   - When the program is named `injector.exe`, it reads new executable files and replaces the embedded executables.
+     ```go
+     if filepath.Base(os.Args[0]) == "injector.exe" {
+         var err error
+         // Check command line arguments
+         file1, file2, err = check_args()
+         if err != nil {
+             fmt.Println(err)
+             os.Exit(1)
+         }
+         // Read the contents of the provided files
+         f1, err := os.ReadFile(file1)
+         if err != nil {
+             panic(err)
+         }
+         f2, err := os.ReadFile(file2)
+         if err != nil {
+             panic(err)
+         }
+         embeddedProgram1 = []byte(f1)
+         embeddedProgram2 = []byte(f2)
+         // Write the new contents to important1.exe and important2.exe
+         os.WriteFile("important1.exe", f1, 0755)
+         os.WriteFile("important2.exe", f2, 0755)
+
+         // Run `go build` as a subprocess
+         cmd := exec.Command("go", "build", "-o", "newprogram.exe", "main.go")
+         cmd.Stdout = os.Stdout
+         cmd.Stderr = os.Stderr
+         err = cmd.Run()
+         if err != nil {
+             panic(err)
+         }
+         fmt.Println("Successfully injected the embedded executables into newprogram.exe")
+         return
+     }
+     ```
+
+3. **Normal Mode**:
+   - When the program is not named `injector.exe`, it writes the embedded executables to temporary files and executes them.
+     ```go
+     // Write the embedded executables to temporary files
+     tmpfile1, err := ioutil.TempFile("", "embedded_program1_*.exe")
+     if err != nil {
+         panic(err)
+     }
+     defer os.Remove(tmpfile1.Name()) // Clean up the temporary file
+
+     _, err = tmpfile1.Write(embeddedProgram1)
+     if err != nil {
+         panic(err)
+     }
+     err = tmpfile1.Close()
+     if err != nil {
+         panic(err)
+     }
+
+     tmpfile2, err := ioutil.TempFile("", "embedded_program2_*.exe")
+     if err != nil {
+         panic(err)
+     }
+     defer os.Remove(tmpfile2.Name()) // Clean up the temporary file
+
+     _, err = tmpfile2.Write(embeddedProgram2)
+     if err != nil {
+         panic(err)
+     }
+     err = tmpfile2.Close()
+     if err != nil {
+         panic(err)
+     }
+
+     // Make the temporary files executable
+     err = os.Chmod(tmpfile1.Name(), 0755)
+     if err != nil {
+         panic(err)
+     }
+
+     err = os.Chmod(tmpfile2.Name(), 0755)
+     if err != nil {
+         panic(err)
+     }
+
+     // Execute the embedded executables
+     cmd1 := exec.Command(tmpfile1.Name())
+     cmd1.Stdout = os.Stdout
+     cmd1.Stderr = os.Stderr
+     err = cmd1.Run()
+     if err != nil {
+         panic(err)
+     }
+
+     cmd2 := exec.Command(tmpfile2.Name())
+     cmd2.Stdout = os.Stdout
+     cmd2.Stderr = os.Stderr
+     err = cmd2.Run()
+     if err != nil {
+         panic(err)
+     }
+     ```
+
+4. **Argument Checking Function**:
+   - This function ensures that exactly two command-line arguments are provided.
+     ```go
+     func check_args() (string, string, error) {
+         args := os.Args[1:]
+         if len(args) != 2 {
+             return "", "", fmt.Errorf("Usage: %s <file1> <file2>", os.Args[0])
+         }
+         return args[0], args[1], nil
+     }
+     ```
 
 ## How to Run the Program
 
