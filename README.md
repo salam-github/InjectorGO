@@ -4,15 +4,15 @@ This program is designed to embed two executable files (`important1.exe` and `im
 
 ## How the Program Works
 
-The program operates in two modes:
+The program operates in two main phases:
 
-1. **Injector Mode**:
+1. **Embedding Phase**:
    - When the program is compiled and run as `injector.exe`, it reads two new executable files provided as command-line arguments.
    - It replaces the embedded `important1.exe` and `important2.exe` with these new files.
    - It recompiles the program with the updated embedded executables and saves it as `newprogram.exe`.
 
-2. **Normal Mode**:
-   - When the program is run with any name other than `injector.exe`, it extracts the embedded executables to temporary files and executes them.
+2. **Execution Phase**:
+   - When the program is run as `newprogram.exe`, it extracts the embedded executables to temporary files and executes them.
 
 ## How to Embed Files
 
@@ -48,7 +48,7 @@ The key parts of the program are:
      var embeddedProgram2 []byte
      ```
 
-2. **Injector Mode**:
+2. **Embedding Phase**:
    - When the program is named `injector.exe`, it reads new executable files and replaces the embedded executables.
      ```go
      if filepath.Base(os.Args[0]) == "injector.exe" {
@@ -87,8 +87,8 @@ The key parts of the program are:
      }
      ```
 
-3. **Normal Mode**:
-   - When the program is not named `injector.exe`, it writes the embedded executables to temporary files and executes them.
+3. **Execution Phase**:
+   - When the program is run as `newprogram.exe`, it writes the embedded executables to temporary files and executes them.
      ```go
      // Write the embedded executables to temporary files
      tmpfile1, err := ioutil.TempFile("", "embedded_program1_*.exe")
@@ -201,6 +201,5 @@ When executed, `newprogram.exe` will extract the embedded executables to tempora
 - Ensure `main.go` is in the same directory when running these commands.
 - Ensure `important1.exe` and `important2.exe` files exist and are accessible.
 - The `injector.exe` creates a new executable named `newprogram.exe` with the embedded executables.
-- The program must not be named `injector.exe` when running in normal mode to execute the embedded executables.
 
 By following these steps, you can embed and run executables directly within your main Go program.
