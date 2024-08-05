@@ -1,205 +1,127 @@
-# Embedded Executables Program
+Executable Binder
+=================
 
-This program is designed to embed two executable files (`important1.exe` and `important2.exe`) into a main Go program. It provides functionality to update these embedded executables with new versions and then run them.
+Table of Contents
+-----------------
 
-## How the Program Works
+- [Overview](#overview)
+- [Features](#features)
+- [Requirements](#requirements)
+- [Installation](#installation)
+- [Usage](#usage)
+- [How It Works](#how-it-works)
+- [Challenges and Learnings](#challenges-and-learnings)
+- [Security Considerations](#security-considerations)
+- [Conclusion](#conclusion)
 
-The program operates in two main phases:
+Overview
+--------
 
-1. **Embedding Phase**:
-   - When the program is compiled and run as `injector.exe`, it reads two new executable files provided as command-line arguments.
-   - It replaces the embedded `important1.exe` and `important2.exe` with these new files.
-   - It recompiles the program with the updated embedded executables and saves it as `newprogram.exe`.
+The Executable Binder is a tool designed to merge two executable programs into a single executable. This tool is implemented in Go and allows users to embed two executables into a new executable file, which can then execute both embedded programs concurrently.
 
-2. **Execution Phase**:
-   - When the program is run as `newprogram.exe`, it extracts the embedded executables to temporary files and executes them.
+Features
+--------
 
-## How to Embed Files
+- **Embed Executables**: Combine two executable files into a single executable.
+- **Custom Output Path**: Specify a custom output path for the new executable.
+- **Concurrency**: Execute the embedded programs concurrently.
+- **Logging**: Detailed logging to help with debugging and tracking execution.
 
-### Step-by-Step Process
+Requirements
+------------
 
-1. **Ensure Files Exist**:
-   - Make sure `important1.exe` and `important2.exe` exist in your directory. If not, create or copy them there.
+- **Go 1.19 or later**: The tool is implemented in Go and requires Go 1.19 or later.
+- **MinGW-w64**: For Windows users, MinGW-w64 is required to ensure 64-bit mode compatibility.
 
-2. **Compile the Injector**:
-   - Compile the Go code as `injector.exe`:
-     ```sh
-     go build -o injector.exe main.go
-     ```
+Installation
+------------
 
-3. **Run the Injector**:
-   - Use `injector.exe` to embed the new executables:
-     ```sh
-     .\injector.exe .\important1.exe .\important2.exe
-     ```
-   - This updates the embedded executables in the program and recompiles it, saving the new version as `newprogram.exe`.
+1. **Install Go**: Download and install Go 1.19 or later from the [official Go website](https://golang.org/dl/).
+2. **Install MinGW-w64**: For Windows users, download and install MinGW-w64 from SourceForge.
+3. **Set Up Environment Variables**:
+    - Add the Go `bin` directory to your `PATH`.
+    - Add the MinGW-w64 `bin` directory to your `PATH`.
 
-### Code Explanation
+Usage
+-----
 
-The key parts of the program are:
+### Building the Program
 
-1. **Embedding Executables Using `go:embed`**:
-   - The `//go:embed` directive is used to embed the executables into the Go program at compile time.
-     ```go
-     //go:embed important1.exe
-     var embeddedProgram1 []byte
+To build the `injector.exe` executable, run the following command:
 
-     //go:embed important2.exe
-     var embeddedProgram2 []byte
-     ```
+```sh
+go build -o injector.exe main.go
+```
 
-2. **Embedding Phase**:
-   - When the program is named `injector.exe`, it reads new executable files and replaces the embedded executables.
-     ```go
-     if filepath.Base(os.Args[0]) == "injector.exe" {
-         var err error
-         // Check command line arguments
-         file1, file2, err = check_args()
-         if err != nil {
-             fmt.Println(err)
-             os.Exit(1)
-         }
-         // Read the contents of the provided files
-         f1, err := os.ReadFile(file1)
-         if err != nil {
-             panic(err)
-         }
-         f2, err := os.ReadFile(file2)
-         if err != nil {
-             panic(err)
-         }
-         embeddedProgram1 = []byte(f1)
-         embeddedProgram2 = []byte(f2)
-         // Write the new contents to important1.exe and important2.exe
-         os.WriteFile("important1.exe", f1, 0755)
-         os.WriteFile("important2.exe", f2, 0755)
+### Merging Two Programs
 
-         // Run `go build` as a subprocess
-         cmd := exec.Command("go", "build", "-o", "newprogram.exe", "main.go")
-         cmd.Stdout = os.Stdout
-         cmd.Stderr = os.Stderr
-         err = cmd.Run()
-         if err != nil {
-             panic(err)
-         }
-         fmt.Println("Successfully injected the embedded executables into newprogram.exe")
-         return
-     }
-     ```
+To merge two executable programs, use the following command:
 
-3. **Execution Phase**:
-   - When the program is run as `newprogram.exe`, it writes the embedded executables to temporary files and executes them.
-     ```go
-     // Write the embedded executables to temporary files
-     tmpfile1, err := ioutil.TempFile("", "embedded_program1_*.exe")
-     if err != nil {
-         panic(err)
-     }
-     defer os.Remove(tmpfile1.Name()) // Clean up the temporary file
+```sh
+injector.exe <file1> <file2> [outputPath]
+```
 
-     _, err = tmpfile1.Write(embeddedProgram1)
-     if err != nil {
-         panic(err)
-     }
-     err = tmpfile1.Close()
-     if err != nil {
-         panic(err)
-     }
+Where:
 
-     tmpfile2, err := ioutil.TempFile("", "embedded_program2_*.exe")
-     if err != nil {
-         panic(err)
-     }
-     defer os.Remove(tmpfile2.Name()) // Clean up the temporary file
+- `file1`: Path to the first executable.
+- `file2`: Path to the second executable.
+- `outputPath` (optional): Custom output path for the new executable. Defaults to `newprogram.exe`.
 
-     _, err = tmpfile2.Write(embeddedProgram2)
-     if err != nil {
-         panic(err)
-     }
-     err = tmpfile2.Close()
-     if err != nil {
-         panic(err)
-     }
+### Running the Merged Program
 
-     // Make the temporary files executable
-     err = os.Chmod(tmpfile1.Name(), 0755)
-     if err != nil {
-         panic(err)
-     }
+To run the merged executable, simply execute the output file created by the binder:
 
-     err = os.Chmod(tmpfile2.Name(), 0755)
-     if err != nil {
-         panic(err)
-     }
+```sh
+newprogram.exe
+```
 
-     // Execute the embedded executables
-     cmd1 := exec.Command(tmpfile1.Name())
-     cmd1.Stdout = os.Stdout
-     cmd1.Stderr = os.Stderr
-     err = cmd1.Run()
-     if err != nil {
-         panic(err)
-     }
+How It Works
+------------
 
-     cmd2 := exec.Command(tmpfile2.Name())
-     cmd2.Stdout = os.Stdout
-     cmd2.Stderr = os.Stderr
-     err = cmd2.Run()
-     if err != nil {
-         panic(err)
-     }
-     ```
+1. **Argument Validation**: The program validates the provided arguments to ensure two input files are specified.
+2. **Reading Executables**: The specified executable files are read and stored as byte slices.
+3. **Embedding**: The byte slices are written to temporary files (`important1.exe` and `important2.exe`).
+4. **Building New Executable**: A new executable is built using the Go `exec.Command` to run `go build`.
+5. **Executing Embedded Programs**: When the new executable is run, the embedded executables are extracted to temporary files and executed concurrently.
 
-4. **Argument Checking Function**:
-   - This function ensures that exactly two command-line arguments are provided.
-     ```go
-     func check_args() (string, string, error) {
-         args := os.Args[1:]
-         if len(args) != 2 {
-             return "", "", fmt.Errorf("Usage: %s <file1> <file2>", os.Args[0])
-         }
-         return args[0], args[1], nil
-     }
-     ```
+Challenges and Learnings
+------------------------
 
-## How to Run the Program
+### Initial Challenges
 
-1. **Run the New Program**:
-   - Execute the newly compiled program (`newprogram.exe`) to run the embedded executables:
-     ```sh
-     .\newprogram.exe
-     ```
+We initially attempted to create this tool using Python. However, embedding binary data and executing it securely and efficiently proved challenging in Python. We faced issues with file handling, concurrency, and cross-platform compatibility.
 
-When executed, `newprogram.exe` will extract the embedded executables to temporary files and run them.
+### Transition to Go
 
-## Example Commands
+Switching to Go provided several benefits:
 
-### Initial Setup
+- **Static Typing**: Improved type safety and reduced runtime errors.
+- **Concurrency**: Go's goroutines made it easier to handle concurrent execution.
+- **Efficiency**: Go's performance and compilation to native binaries improved execution speed and ease of distribution.
 
-1. **Initialize Go Module (if not already initialized)**:
-    ```sh
-    go mod init test
-    ```
+### Technical Challenges
 
-2. **Compile `injector.exe`**:
-    ```sh
-    go build -o injector.exe main.go
-    ```
+- **64-bit Compatibility**: Ensuring the compiler supported 64-bit mode required installing MinGW-w64 and configuring environment variables.
+- **Logging and Error Handling**: Implementing comprehensive logging and detailed error messages helped in debugging and improving the user experience.
 
-3. **Embed New Executables**:
-    ```sh
-    .\injector.exe .\important1.exe .\important2.exe
-    ```
+Security Considerations
+-----------------------
 
-4. **Run the Program**:
-    ```sh
-    .\newprogram.exe
-    ```
+### Dangers of File Binding
 
-## Notes
+Binding multiple executable files can pose several security risks:
 
-- Ensure `main.go` is in the same directory when running these commands.
-- Ensure `important1.exe` and `important2.exe` files exist and are accessible.
-- The `injector.exe` creates a new executable named `newprogram.exe` with the embedded executables.
+- **Malware Distribution**: Malicious actors can use file binders to distribute malware hidden within legitimate software.
+- **Unintended Behavior**: Executing multiple programs together can lead to unintended interactions and behavior.
+- **Integrity Risks**: Ensuring the integrity and authenticity of the embedded executables is crucial.
 
-By following these steps, you can embed and run executables directly within your main Go program.
+### Learnings
+
+- **Awareness**: Understanding the potential dangers of file binding emphasized the need for secure development practices.
+- **User Education**: Educating users on the risks associated with running merged executables is important for promoting safe usage.
+
+Conclusion
+----------
+
+The Executable Binder tool allows users to merge two executables into a single file, providing custom output paths, concurrent execution, and detailed logging. While developing this tool, we learned valuable lessons about security, file handling, and concurrency. We chose Go over Python for its performance, concurrency model, and static typing, which significantly improved the tool's reliability and efficiency.
+

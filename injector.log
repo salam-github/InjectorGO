@@ -1,0 +1,13 @@
+2024/08/05 02:28:34 Injector started
+2024/08/05 02:28:34 Embedding executables: .\hello.exe .\bin.exe
+2024/08/05 02:28:34 Building new executable: newprogram.exe
+2024/08/05 02:28:35 Successfully created newprogram.exe
+2024/08/05 02:28:41 Injector started
+2024/08/05 02:28:41 Error reading important1.tmp: open important1.tmp: The system cannot find the file specified.
+2024/08/05 02:32:41 Injector started
+2024/08/05 02:32:41 Embedding executables: .\hello.exe .\bin.exe
+2024/08/05 02:32:41 Building new executable: newprogram.exe
+2024/08/05 02:32:42 Successfully created newprogram.exe
+2024/08/05 02:32:46 Injector started
+2024/08/05 02:32:46 Executing embedded programs concurrently
+2024/08/05 02:32:46 Error executing embedded program: fork/exec C:\Users\Salam\AppData\Local\Temp\embedded_program2_1286948621.exe: %1 is not a valid Win32 application.
