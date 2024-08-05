@@ -46,9 +46,19 @@ func handleUserInput() {
 			targetFileName, executablePaths := getTargetAndExecutables()
 			validateArguments(targetFileName, executablePaths, operatingSystem)
 			executableData := collectExecutableData(executablePaths)
-			createBundle(targetFileName, executableData)
+			tempFileName := createBundle(targetFileName, executableData)
 			appendToBundle(targetFileName, executableData)
 			logInfo("Successfully combined " + intToString(len(executablePaths)) + " executables.")
+
+			// Ask user if they want to save the temporary .go file
+			fmt.Println("Do you want to save the temporary .go file? (y/n)")
+			var saveResponse string
+			fmt.Scanln(&saveResponse)
+			if saveResponse == "y" {
+				saveTempFile(tempFileName)
+			} else {
+				removeFile(tempFileName)
+			}
 		case "2":
 			fmt.Println("Exiting the program.")
 			return
@@ -146,7 +156,7 @@ func collectExecutableData(paths []string) [][]byte {
 }
 
 // createBundle creates a bundle executable file with a unique name.
-func createBundle(name string, data [][]byte) {
+func createBundle(name string, data [][]byte) string {
 	logInfo("Creating bundle executable...")
 
 	tempFileName := uuid.NewString() + ".go"
@@ -160,7 +170,7 @@ func createBundle(name string, data [][]byte) {
 		logFatal(errors.New("Failed to compile bundle: " + err.Error() + "\nOutput:\n" + string(output)))
 	}
 
-	removeFile(tempFileName)
+	return tempFileName
 }
 
 // appendToBundle appends executable data to the bundle file.
@@ -206,6 +216,17 @@ func removeFile(name string) {
 	err := os.Remove(name)
 	if err != nil {
 		logFatal(errors.New("Failed to delete file " + name + ": " + err.Error()))
+	}
+}
+
+// saveTempFile saves the temporary Go source file.
+func saveTempFile(fileName string) {
+	destName := fileName + ".saved"
+	err := os.Rename(fileName, destName)
+	if err != nil {
+		logError("Failed to save the temporary .go file: " + err.Error())
+	} else {
+		logInfo("Temporary .go file saved as " + destName)
 	}
 }
 
