@@ -21,8 +21,22 @@ func main() {
 
 // showSplashScreen displays a splash screen.
 func showSplashScreen() {
-	fmt.Println("\033[34mWelcome to the Executable Bundler!\033[0m")
+	// Red color ANSI escape code is \033[31m
+	// Reset color ANSI escape code is \033[0m
+	fmt.Println(`
+ ██▓ ███▄    █  ▄▄▄██▀▀▀▓█████  ▄████▄  ▄▄▄█████▓ ▒█████   ██▀███  
+▓██▒ ██ ▀█   █    ▒██   ▓█   ▀ ▒██▀ ▀█  ▓  ██▒ ▓▒▒██▒  ██▒▓██ ▒ ██▒
+▒██▒▓██  ▀█ ██▒   ░██   ▒███   ▒▓█    ▄ ▒ ▓██░ ▒░▒██░  ██▒▓██ ░▄█ ▒
+░██░▓██▒  ▐▌██▒▓██▄██▓  ▒▓█  ▄ ▒▓▓▄ ▄██▒░ ▓██▓ ░ ▒██   ██░▒██▀▀█▄  
+░██░▒██░   ▓██░ ▓███▒   ░▒████▒▒ ▓███▀ ░  ▒██▒ ░ ░ ████▓▒░░██▓ ▒██▒
+░▓  ░ ▒░   ▒ ▒  ▒▓▒▒░   ░░ ▒░ ░░ ░▒ ▒  ░  ▒ ░░   ░ ▒░▒░▒░ ░ ▒▓ ░▒▓░
+ ▒ ░░ ░░   ░ ▒░ ▒ ░▒░    ░ ░  ░  ░  ▒       ░      ░ ▒ ▒░   ░▒ ░ ▒░
+ ▒ ░   ░   ░ ░  ░ ░ ░      ░   ░          ░      ░ ░ ░ ▒    ░░   ░ 
+ ░           ░  ░   ░      ░  ░░ ░                   ░ ░     ░     
+                               ░                                   
+`)
 	fmt.Println("====================================")
+	fmt.Println("Welcome to the Injector!")
 	fmt.Println("This tool combines multiple executables into a single bundle.")
 	fmt.Println("You will be guided through a menu to specify your target and executables.")
 	fmt.Println("====================================\n")
